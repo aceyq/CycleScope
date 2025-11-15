@@ -25,17 +25,32 @@ const bikeLinePaint = {
   'line-opacity': 0.6,
 };
 
-// Helper function to convert station Lat/Long -> pixel coords
-// Uses the property names from the JSON: Lat and Long
+/**
+ * Convert a station's Lat/Long (from the JSON) into pixel coordinates
+ * on the Mapbox map. Returns { cx, cy } or null if coordinates are bad.
+ *
+ * JSON fields (per lab handout):
+ *   Lat  -> latitude
+ *   Long -> longitude
+ */
 function getCoords(station) {
-  const point = new mapboxgl.LngLat(+station.Long, +station.Lat);
-  const { x, y } = map.project(point);
-  return { cx: x, cy: y };
+  const lon = Number(station.Long);
+  const lat = Number(station.Lat);
+
+  // If either is NaN/invalid, skip this station
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+    console.warn('Invalid station coordinates, skipping:', station);
+    return null;
+  }
+
+  // Mapbox accepts [lon, lat]
+  const p = map.project([lon, lat]);
+  return { cx: p.x, cy: p.y };
 }
 
 // --- When the map is ready ---
 map.on('load', async () => {
-  console.log('Map loaded, adding bike lanes…');
+  console.log('Map loaded, adding bike lanes and stations…');
 
   // ===== Step 2: Bike lanes =====
 
@@ -56,7 +71,7 @@ map.on('load', async () => {
   // Cambridge bike lanes — plug in the URL from the lab writeup
   map.addSource('cambridge_route', {
     type: 'geojson',
-    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson',
+    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson', // TODO
   });
 
   map.addLayer({
@@ -71,7 +86,7 @@ map.on('load', async () => {
   // SVG overlay inside #map
   const svg = d3.select('#map').select('svg');
 
-  // Fetch station JSON
+  // Load station JSON from the lab URL
   const jsonurl =
     'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
 
@@ -84,7 +99,7 @@ map.on('load', async () => {
     return; // stop if fetch failed
   }
 
-  let stations = jsonData.data.stations;
+  const stations = jsonData.data.stations;
   console.log('Stations Array:', stations);
 
   // Append one circle per station
@@ -102,8 +117,18 @@ map.on('load', async () => {
   // Position circles based on current map view
   function updatePositions() {
     circles
-      .attr('cx', (d) => getCoords(d).cx)
-      .attr('cy', (d) => getCoords(d).cy);
+      .attr('cx', (d) => {
+        const pt = getCoords(d);
+        return pt ? pt.cx : -9999; // move invalid ones offscreen
+      })
+      .attr('cy', (d) => {
+        const pt = getCoords(d);
+        return pt ? pt.cy : -9999;
+      })
+      .attr('display', (d) => {
+        const pt = getCoords(d);
+        return pt ? null : 'none'; // hide invalid stations
+      });
   }
 
   // Initial draw
