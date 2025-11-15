@@ -1,9 +1,19 @@
 #map {
+    position: relative;      /* so the SVG can be positioned inside */
     width: 100%;
-    height: 80vh; /* big map, but leaves a little space */
+    height: 80vh;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    background: #eaeaea; /* so you can see the area even before tiles load */
+    background: #eaeaea;     /* visible while tiles load */
+  }
+  
+  /* SVG overlay that sits *on top* of the map */
+  #map svg {
+    position: absolute;
+    inset: 0;                /* top:0; right:0; bottom:0; left:0 */
+    width: 100%;
+    height: 100%;
+    pointer-events: none;    /* so you can still pan/zoom the map */
   }
   

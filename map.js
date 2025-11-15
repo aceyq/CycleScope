@@ -52,4 +52,54 @@ map.on('load', async () => {
       source: 'cambridge_route',
       paint: bikeLinePaint,
     });
-  });  
+
+    // ===== Step 3: Bluebikes stations =====
+
+  // Select the SVG overlay inside #map
+  const svg = d3.select('#map').select('svg');
+
+  // Load Bluebikes station JSON
+  const jsonUrl =
+    'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+
+  let jsonData;
+  try {
+    jsonData = await d3.json(jsonUrl);
+    console.log('Loaded JSON Data:', jsonData);
+  } catch (error) {
+    console.error('Error loading JSON:', error);
+    return; // stop if we couldn’t load data
+  }
+
+  const stations = jsonData.data.stations;
+  console.log('Stations Array:', stations);
+
+  // Create one circle per station
+  const circles = svg
+    .selectAll('circle')
+    .data(stations)
+    .enter()
+    .append('circle')
+    .attr('r', 5)
+    .attr('fill', 'steelblue')
+    .attr('stroke', 'white')
+    .attr('stroke-width', 1)
+    .attr('opacity', 0.8);
+
+  // Function to update circle positions based on current map view
+  function updatePositions() {
+    circles
+      .attr('cx', (d) => getCoords(d).cx)
+      .attr('cy', (d) => getCoords(d).cy);
+  }
+
+  // Initial positioning
+  updatePositions();
+
+  // Keep markers in sync with the map
+  map.on('move', updatePositions);
+  map.on('zoom', updatePositions);
+  map.on('resize', updatePositions);
+  map.on('moveend', updatePositions);
+});
+  
