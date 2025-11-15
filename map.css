@@ -1,14 +1,9 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-}
-
 #map {
-  width: 100%;
-  height: 100vh; /* full screen */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
+    width: 100%;
+    height: 80vh; /* big map, but leaves a little space */
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    background: #eaeaea; /* so you can see the area even before tiles load */
+  }
+  
