@@ -1,19 +1,34 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
 #map {
-    position: relative;
-    width: 100%;
-    height: 80vh;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    background: #eaeaea;
-  }
-  
-  /* SVG overlay that sits on top of the map */
-  #map svg {
-    position: absolute;
-    inset: 0; /* top:0; right:0; bottom:0; left:0 */
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* map still draggable */
-  }
-  
+  position: relative; /* This is crucial for SVG positioning */
+  width: 80%; /* Adjust width to your desired size */
+  height: 80vh; /* Adjust height to your desired size */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow for effect */
+  border-radius: 8px; /* Optional: rounded corners */
+}
+
+/* SVG overlay - THIS IS THE KEY FIX */
+#map svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Allow map interactions through SVG */
+  z-index: 1; /* Ensure SVG is above the map */
+}
+
+/* Optional: Make the circles more visible */
+#map svg circle {
+  pointer-events: visible; /* Allow mouse events on circles if needed */
+}
