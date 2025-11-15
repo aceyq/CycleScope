@@ -27,6 +27,21 @@
     <div id="map">
       <svg></svg>
     </div>
+    <div class="legend">
+      <div class="legend-title">Traffic Flow:</div>
+      <div class="legend-item" style="--departure-ratio: 1">
+        <span class="swatch"></span>
+        <span class="label">More departures</span>
+      </div>
+      <div class="legend-item" style="--departure-ratio: 0.5">
+        <span class="swatch"></span>
+        <span class="label">Balanced</span>
+      </div>
+      <div class="legend-item" style="--departure-ratio: 0">
+        <span class="swatch"></span>
+        <span class="label">More arrivals</span>
+      </div>
+    </div>
     <script src="map.js" type="module"></script>
   </body>
 </html>

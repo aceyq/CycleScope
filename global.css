@@ -46,3 +46,47 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     z-index: 1000;
   }
+  
+  /* Legend Styles - Design 2: Separate swatches & labels */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 1.5em;
+    margin-block: 1em;
+    padding: 0.75em;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .legend-title {
+    font-weight: bold;
+    color: #495057;
+    margin-right: 0.5em;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  
+  .swatch {
+    width: 1em;
+    height: 1em;
+    border-radius: 2px;
+    border: 1px solid #ccc;
+    --color-departures: steelblue;
+    --color-arrivals: darkorange;
+    --color: color-mix(
+      in oklch,
+      var(--color-departures) calc(100% * var(--departure-ratio)),
+      var(--color-arrivals)
+    );
+    background: var(--color);
+  }
+  
+  .label {
+    font-size: 0.9em;
+    color: #495057;
+  }

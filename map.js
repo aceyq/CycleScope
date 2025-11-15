@@ -93,6 +93,7 @@ let circles;
 let radiusScale;
 let stations;
 let trips;
+let stationFlow; // Quantize scale for traffic flow
 
 map.on('load', async () => {
   // Add Boston bike lanes
@@ -169,6 +170,9 @@ map.on('load', async () => {
       .domain([0, maxTraffic])
       .range([0, 25]);
 
+    // Create quantize scale for traffic flow (3 discrete colors)
+    stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
+
     console.log('Radius scale domain:', [0, maxTraffic]);
 
     // Append circles to the SVG for each station
@@ -178,17 +182,23 @@ map.on('load', async () => {
       .enter()
       .append('circle')
       .attr('r', (d) => radiusScale(d.totalTraffic))
-      .attr('fill', 'steelblue')
+      .style('--departure-ratio', (d) => {
+        const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5;
+        return stationFlow(ratio);
+      })
       .attr('stroke', 'white')
       .attr('stroke-width', 1)
       .attr('opacity', 0.6)
       .style('pointer-events', 'auto')
       .each(function (d) {
         // Add <title> for browser tooltips
+        const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5;
+        const flowType = ratio > 0.6 ? 'More departures' : 
+                        ratio < 0.4 ? 'More arrivals' : 'Balanced';
         d3.select(this)
           .append('title')
           .text(
-            `${d.name}\n${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
+            `${d.name}\n${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)\n${flowType}`
           );
       });
 
@@ -221,11 +231,33 @@ map.on('load', async () => {
       // Update circle sizes based on filtering
       timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
 
-      // Update the scatterplot by adjusting the radius of circles
+      // Update the scatterplot by adjusting the radius and color of circles
       circles
         .data(filteredStations, (d) => d.short_name) // Ensure D3 tracks elements correctly
         .join('circle')
-        .attr('r', (d) => radiusScale(d.totalTraffic));
+        .attr('r', (d) => radiusScale(d.totalTraffic))
+        .style('--departure-ratio', (d) => {
+          const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5;
+          return stationFlow(ratio);
+        })
+        .each(function (d) {
+          // Update tooltip with current flow information
+          const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0.5;
+          const flowType = ratio > 0.6 ? 'More departures' : 
+                          ratio < 0.4 ? 'More arrivals' : 'Balanced';
+          const title = d3.select(this).select('title');
+          if (title.empty()) {
+            d3.select(this)
+              .append('title')
+              .text(
+                `${d.name}\n${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)\n${flowType}`
+              );
+          } else {
+            title.text(
+              `${d.name}\n${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)\n${flowType}`
+            );
+          }
+        });
     }
 
     // Function to update time display
