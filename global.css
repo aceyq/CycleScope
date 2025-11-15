@@ -8,3 +8,41 @@ body {
     margin: auto;
     padding: 1em;
   }
+  
+  header {
+    display: flex;
+    gap: 1em;
+    align-items: baseline;
+    margin-bottom: 1em;
+  }
+  
+  header label {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+  }
+  
+  #selected-time {
+    display: block;
+    font-weight: bold;
+  }
+  
+  #any-time {
+    display: block;
+    color: #666;
+    font-style: italic;
+  }
+  
+  #loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
