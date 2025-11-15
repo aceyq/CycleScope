@@ -5,14 +5,14 @@ import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 console.log('Mapbox GL JS Loaded:', mapboxgl);
 console.log('D3 Loaded:', d3);
 
-// 🔑 Your Mapbox access token
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWNlbHlubnFpYW8iLCJhIjoiY21oemh2YmQzMG91dDJucTBhb3RldWpyeiJ9.91xzjF6NjtIaS3wU_LQD8w'; // TODO: replace
+// 🔑 Your Mapbox access token (replace this!)
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWNlbHlubnFpYW8iLCJhIjoiY21oemh2YmQzMG91dDJucTBhb3RldWpyeiJ9.91xzjF6NjtIaS3wU_LQD8w';
 
 // --- Base map ---
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
-  center: [-71.09415, 42.36027], // Boston/Cambridge
+  center: [-71.09415, 42.36027], // Boston/Cambridge area
   zoom: 12,
   minZoom: 5,
   maxZoom: 18,
@@ -25,23 +25,21 @@ const bikeLinePaint = {
   'line-opacity': 0.6,
 };
 
-// Helper to convert station Lat/Long -> pixel coordinates
-// (property names match the JSON: Lat, Long)
+// Helper function to convert station Lat/Long -> pixel coords
+// Uses the property names from the JSON: Lat and Long
 function getCoords(station) {
-  const lon = +station.Long;
-  const lat = +station.Lat;
-  const lngLat = new mapboxgl.LngLat(lon, lat);
-  const { x, y } = map.project(lngLat);
+  const point = new mapboxgl.LngLat(+station.Long, +station.Lat);
+  const { x, y } = map.project(point);
   return { cx: x, cy: y };
 }
 
 // --- When the map is ready ---
 map.on('load', async () => {
-  console.log('Map loaded, adding bike lanes and stations…');
+  console.log('Map loaded, adding bike lanes…');
 
   // ===== Step 2: Bike lanes =====
 
-  // Boston lanes
+  // Boston bike lanes
   map.addSource('boston_route', {
     type: 'geojson',
     data:
@@ -55,10 +53,10 @@ map.on('load', async () => {
     paint: bikeLinePaint,
   });
 
-  // Cambridge lanes (use the URL from your lab writeup)
+  // Cambridge bike lanes — plug in the URL from the lab writeup
   map.addSource('cambridge_route', {
     type: 'geojson',
-    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson', // TODO: replace
+    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson',
   });
 
   map.addLayer({
@@ -70,25 +68,26 @@ map.on('load', async () => {
 
   // ===== Step 3: Bluebikes stations =====
 
-  // Select the SVG overlay
+  // SVG overlay inside #map
   const svg = d3.select('#map').select('svg');
 
-  const jsonUrl =
+  // Fetch station JSON
+  const jsonurl =
     'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
 
   let jsonData;
   try {
-    jsonData = await d3.json(jsonUrl);
+    jsonData = await d3.json(jsonurl);
     console.log('Loaded JSON Data:', jsonData);
   } catch (error) {
     console.error('Error loading JSON:', error);
     return; // stop if fetch failed
   }
 
-  const stations = jsonData.data.stations;
+  let stations = jsonData.data.stations;
   console.log('Stations Array:', stations);
 
-  // One circle per station
+  // Append one circle per station
   const circles = svg
     .selectAll('circle')
     .data(stations)
@@ -100,7 +99,7 @@ map.on('load', async () => {
     .attr('stroke-width', 1)
     .attr('opacity', 0.8);
 
-  // Keep circles in the right place
+  // Position circles based on current map view
   function updatePositions() {
     circles
       .attr('cx', (d) => getCoords(d).cx)
@@ -110,7 +109,7 @@ map.on('load', async () => {
   // Initial draw
   updatePositions();
 
-  // Update on map interactions
+  // Keep markers aligned when the map moves/zooms/resizes
   map.on('move', updatePositions);
   map.on('zoom', updatePositions);
   map.on('resize', updatePositions);

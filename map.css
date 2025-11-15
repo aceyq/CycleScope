@@ -1,19 +1,19 @@
 #map {
-    position: relative;      /* so the SVG can be positioned inside */
+    position: relative;
     width: 100%;
     height: 80vh;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    background: #eaeaea;     /* visible while tiles load */
+    background: #eaeaea;
   }
   
-  /* SVG overlay that sits *on top* of the map */
+  /* SVG overlay that sits on top of the map */
   #map svg {
     position: absolute;
-    inset: 0;                /* top:0; right:0; bottom:0; left:0 */
+    inset: 0; /* top:0; right:0; bottom:0; left:0 */
     width: 100%;
     height: 100%;
-    pointer-events: none;    /* so you can still pan/zoom the map */
+    pointer-events: none; /* map still draggable */
   }
   
