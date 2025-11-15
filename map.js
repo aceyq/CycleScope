@@ -23,9 +23,9 @@ const svg = d3.select('#map').select('svg');
 
 // Define a Helper Function to Convert Coordinates
 function getCoords(station) {
-  const point = new mapboxgl.LngLat(+station.lon, +station.lat); // Convert lon/lat to Mapbox LngLat
-  const { x, y } = map.project(point); // Project to pixel coordinates
-  return { cx: x, cy: y }; // Return as object for use in SVG attributes
+  const point = new mapboxgl.LngLat(+station.lon, +station.lat);
+  const { x, y } = map.project(point);
+  return { cx: x, cy: y };
 }
 
 map.on('load', async () => {
@@ -63,18 +63,52 @@ map.on('load', async () => {
     },
   });
 
-  // Load and display Bluebikes stations
-  let jsonData;
+  // Load and display Bluebikes stations and traffic data
   try {
-    const jsonurl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+    // Load station data
+    const stationsUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+    const stationsData = await d3.json(stationsUrl);
+    let stations = stationsData.data.stations;
 
-    // Await JSON fetch
-    jsonData = await d3.json(jsonurl);
+    // Load traffic data
+    const tripsUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv';
+    const trips = await d3.csv(tripsUrl);
 
-    console.log('Loaded JSON Data:', jsonData); // Log to verify structure
-    
-    let stations = jsonData.data.stations;
-    console.log('Stations Array:', stations);
+    console.log('Loaded trips data:', trips.length, 'trips');
+    console.log('Loaded stations data:', stations.length, 'stations');
+
+    // Calculate departures and arrivals
+    const departures = d3.rollup(
+      trips,
+      (v) => v.length,
+      (d) => d.start_station_id,
+    );
+
+    const arrivals = d3.rollup(
+      trips,
+      (v) => v.length,
+      (d) => d.end_station_id,
+    );
+
+    // Add traffic data to stations
+    stations = stations.map((station) => {
+      let id = station.short_name;
+      station.arrivals = arrivals.get(id) ?? 0;
+      station.departures = departures.get(id) ?? 0;
+      station.totalTraffic = station.arrivals + station.departures;
+      return station;
+    });
+
+    console.log('Stations with traffic data:', stations);
+
+    // Create radius scale using square root scale for proper area representation
+    const radiusScale = d3
+      .scaleSqrt()
+      .domain([0, d3.max(stations, (d) => d.totalTraffic)])
+      .range([0, 25]);
+
+    console.log('Radius scale domain:', radiusScale.domain());
+    console.log('Max traffic:', d3.max(stations, (d) => d.totalTraffic));
 
     // Append circles to the SVG for each station
     const circles = svg
@@ -82,29 +116,38 @@ map.on('load', async () => {
       .data(stations)
       .enter()
       .append('circle')
-      .attr('r', 5) // Radius of the circle
-      .attr('fill', 'steelblue') // Circle fill color
-      .attr('stroke', 'white') // Circle border color
-      .attr('stroke-width', 1) // Circle border thickness
-      .attr('opacity', 0.8); // Circle opacity
+      .attr('r', (d) => radiusScale(d.totalTraffic))
+      .attr('fill', 'steelblue')
+      .attr('stroke', 'white')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.6)
+      .style('pointer-events', 'auto') // Enable pointer events for tooltips
+      .each(function (d) {
+        // Add <title> for browser tooltips
+        d3.select(this)
+          .append('title')
+          .text(
+            `${d.name}\n${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
+          );
+      });
 
     // Function to update circle positions when the map moves/zooms
     function updatePositions() {
       circles
-        .attr('cx', (d) => getCoords(d).cx) // Set the x-position using projected coordinates
-        .attr('cy', (d) => getCoords(d).cy); // Set the y-position using projected coordinates
+        .attr('cx', (d) => getCoords(d).cx)
+        .attr('cy', (d) => getCoords(d).cy);
     }
 
     // Initial position update when map loads
     updatePositions();
 
     // Reposition markers on map interactions
-    map.on('move', updatePositions); // Update during map movement
-    map.on('zoom', updatePositions); // Update during zooming
-    map.on('resize', updatePositions); // Update on window resize
-    map.on('moveend', updatePositions); // Final adjustment after movement ends
+    map.on('move', updatePositions);
+    map.on('zoom', updatePositions);
+    map.on('resize', updatePositions);
+    map.on('moveend', updatePositions);
 
   } catch (error) {
-    console.error('Error loading JSON:', error); // Handle errors
+    console.error('Error loading data:', error);
   }
 });

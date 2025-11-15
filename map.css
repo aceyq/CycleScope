@@ -24,3 +24,12 @@ body {
   z-index: 1;
   pointer-events: none;
 }
+
+/* Style for the traffic circles */
+#map svg circle {
+  fill: steelblue;
+  fill-opacity: 0.6;
+  stroke: white;
+  stroke-width: 1;
+  pointer-events: auto; /* Enable tooltips */
+}
