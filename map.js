@@ -5,7 +5,7 @@ import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 console.log('Mapbox GL JS Loaded:', mapboxgl);
 console.log('D3 Loaded:', d3);
 
-// 🔑 Your Mapbox access token (replace this!)
+// 🔑 Your Mapbox access token
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWNlbHlubnFpYW8iLCJhIjoiY21oemh2YmQzMG91dDJucTBhb3RldWpyeiJ9.91xzjF6NjtIaS3wU_LQD8w';
 
 // --- Base map ---
@@ -26,16 +26,16 @@ const bikeLinePaint = {
 };
 
 /**
- * Convert a station's Lat/Long (from the JSON) into pixel coordinates
+ * Convert a station's lat/lon (from the JSON) into pixel coordinates
  * on the Mapbox map. Returns { cx, cy } or null if coordinates are bad.
  *
- * JSON fields (per lab handout):
- *   Lat  -> latitude
- *   Long -> longitude
+ * JSON fields (actual structure):
+ *   lat  -> latitude
+ *   lon  -> longitude
  */
 function getCoords(station) {
-  const lon = Number(station.Long);
-  const lat = Number(station.Lat);
+  const lon = Number(station.lon);
+  const lat = Number(station.lat);
 
   // If either is NaN/invalid, skip this station
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
@@ -57,8 +57,7 @@ map.on('load', async () => {
   // Boston bike lanes
   map.addSource('boston_route', {
     type: 'geojson',
-    data:
-      'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson',
+    data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson',
   });
 
   map.addLayer({
@@ -68,10 +67,10 @@ map.on('load', async () => {
     paint: bikeLinePaint,
   });
 
-  // Cambridge bike lanes — plug in the URL from the lab writeup
+  // Cambridge bike lanes
   map.addSource('cambridge_route', {
     type: 'geojson',
-    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson', // TODO
+    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson',
   });
 
   map.addLayer({
@@ -87,8 +86,7 @@ map.on('load', async () => {
   const svg = d3.select('#map').select('svg');
 
   // Load station JSON from the lab URL
-  const jsonurl =
-    'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+  const jsonurl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
 
   let jsonData;
   try {
